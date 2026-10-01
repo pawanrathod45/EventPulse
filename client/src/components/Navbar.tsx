@@ -40,31 +40,33 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange, rsvpCou
         </div>
 
         {/* Navigation tabs */}
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={() => onTabChange('discover')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
               currentTab === 'discover'
                 ? 'bg-brand-600/20 text-brand-300 border border-brand-500/40 shadow-sm'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Calendar className="w-4 h-4" />
-            <span>Discover Events</span>
+            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Discover Events</span>
+            <span className="sm:hidden">Discover</span>
           </button>
 
           <button
             onClick={() => onTabChange('dashboard')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 relative ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 relative ${
               currentTab === 'dashboard'
                 ? 'bg-brand-600/20 text-brand-300 border border-brand-500/40 shadow-sm'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
-            <BookmarkCheck className="w-4 h-4" />
-            <span>RSVP Dashboard</span>
+            <BookmarkCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">RSVP Dashboard</span>
+            <span className="sm:hidden">RSVPs</span>
             {rsvpCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 rounded-full text-xs font-bold bg-brand-500 text-white">
+              <span className="ml-0.5 sm:ml-1 px-1.5 py-0.2 rounded-full text-[10px] sm:text-xs font-bold bg-brand-500 text-white">
                 {rsvpCount}
               </span>
             )}

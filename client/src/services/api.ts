@@ -29,18 +29,26 @@ export const api = {
 
   // Event Friends Count
   async getFriendsCount(eventId: string): Promise<number> {
-    const res = await fetch(`${API_BASE_URL}/events/${encodeURIComponent(eventId)}/friends-count`);
-    if (!res.ok) return 0;
-    const json = await res.json();
-    return json?.data?.friendsAttendingCount || 0;
+    try {
+      const res = await fetch(`${API_BASE_URL}/events/${encodeURIComponent(eventId)}/friends-count`);
+      if (!res.ok) return 0;
+      const json = await res.json();
+      return json?.data?.friendsAttendingCount || 0;
+    } catch {
+      return 0;
+    }
   },
 
   // Users (for demo switcher)
   async getUsers(): Promise<User[]> {
-    const res = await fetch(`${API_BASE_URL}/users`);
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data || [];
+    try {
+      const res = await fetch(`${API_BASE_URL}/users`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || [];
+    } catch {
+      return [];
+    }
   },
 
   // RSVPs

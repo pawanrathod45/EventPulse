@@ -22,12 +22,12 @@ export const EventCard: React.FC<EventCardProps> = ({
   const [isCopied, setIsCopied] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
 
-  // Directly query the friends count endpoint: GET /api/events/:id/friends-count
+  // Query friends count with sensible staleTime instead of aggressive polling
   const { data: friendsCount = event.friendsAttendingCount || 0 } = useQuery({
     queryKey: ['friends-count', event.id],
     queryFn: () => api.getFriendsCount(event.id),
     initialData: event.friendsAttendingCount || 0,
-    refetchInterval: 5000, // keep live in real-time
+    staleTime: 1000 * 60, // Cache for 1 minute
   });
 
   const isConfirmed = Boolean(userRsvp);
