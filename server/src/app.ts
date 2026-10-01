@@ -30,6 +30,17 @@ export const createApp = (): Express => {
   app.use('/api/rsvp', rsvpRoutes);
   app.use('/api/share', shareRoutes);
 
+  // 404 Handler
+  app.use('*', (_req, res) => {
+    res.status(404).json({
+      success: false,
+      error: {
+        message: 'Endpoint not found',
+        code: 'NOT_FOUND',
+      },
+    });
+  });
+
   // Central error handling
   app.use(errorHandler);
 

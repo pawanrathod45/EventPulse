@@ -211,6 +211,26 @@ function MainApp() {
         )}
       </main>
 
+      {/* Footer */}
+      <footer className="w-full border-t border-white/5 py-6 bg-[#0B0F19]/90 text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-slate-400">EventPulse</span>
+            <span>•</span>
+            <span>Ticketmaster Discovery API Integration</span>
+            <span>•</span>
+            <span>MongoDB Atomic Vibe Tracking</span>
+          </div>
+          <div className="flex items-center gap-4 text-slate-400">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              API Services Online
+            </span>
+            <span>v2.0.0</span>
+          </div>
+        </div>
+      </footer>
+
       {/* Toast Notifications */}
       <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none">
         {toasts.map((toast) => (
