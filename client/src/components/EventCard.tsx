@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, Users, Heart, Share2, Check, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { EventItem, RSVP } from '../types/index.ts';
+import { api } from '../services/api.ts';
 
 interface EventCardProps {
   event: EventItem;
@@ -19,6 +21,14 @@ export const EventCard: React.FC<EventCardProps> = ({
 }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+
+  // Directly query the friends count endpoint: GET /api/events/:id/friends-count
+  const { data: friendsCount = event.friendsAttendingCount || 0 } = useQuery({
+    queryKey: ['friends-count', event.id],
+    queryFn: () => api.getFriendsCount(event.id),
+    initialData: event.friendsAttendingCount || 0,
+    refetchInterval: 5000, // keep live in real-time
+  });
 
   const isConfirmed = Boolean(userRsvp);
 
@@ -73,7 +83,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Friends Attending Badge (Sourced from GET /api/events/:id/friends-count) */}
         <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-fuchsia-950/80 backdrop-blur-md border border-fuchsia-500/40 text-xs font-bold text-fuchsia-200 shadow-lg shadow-fuchsia-950/50">
           <Users className="w-3.5 h-3.5 text-fuchsia-400 animate-pulse" />
-          <span>Friends Attending: {event.friendsAttendingCount || 0}</span>
+          <span>Friends Attending: {friendsCount}</span>
         </div>
 
         {/* Date & Time ribbon */}
