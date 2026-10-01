@@ -6,6 +6,7 @@ import { UserProvider, useUser } from './context/UserContext.tsx';
 import { Navbar } from './components/Navbar.tsx';
 import { DiscoverPage } from './pages/DiscoverPage.tsx';
 import { DashboardPage } from './pages/DashboardPage.tsx';
+import { InviteLandingPage } from './pages/InviteLandingPage.tsx';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
 interface Toast {
@@ -18,7 +19,17 @@ function MainApp() {
   const queryClient = useQueryClient();
   const { currentUser } = useUser();
 
-  // Navigation tab
+  // Route / Page state
+  const [inviteToken, setInviteToken] = useState<string | null>(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/invite/')) {
+      const token = path.replace('/invite/', '').split('/')[0];
+      return token || null;
+    }
+    const params = new URLSearchParams(window.location.search);
+    return params.get('invite') || null;
+  });
+
   const [currentTab, setCurrentTab] = useState<'discover' | 'dashboard'>('discover');
 
   // Filter state
@@ -150,7 +161,21 @@ function MainApp() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        {currentTab === 'discover' ? (
+        {inviteToken ? (
+          <InviteLandingPage
+            token={inviteToken}
+            onExplore={() => {
+              setInviteToken(null);
+              window.history.pushState({}, '', '/');
+              setCurrentTab('discover');
+            }}
+            onRsvpSuccess={(ev) => {
+              queryClient.invalidateQueries({ queryKey: ['user-rsvps'] });
+              queryClient.invalidateQueries({ queryKey: ['events'] });
+              addToast('success', `RSVP confirmed for "${ev.title}"!`);
+            }}
+          />
+        ) : currentTab === 'discover' ? (
           <DiscoverPage
             events={events}
             userRsvps={userRsvps}
