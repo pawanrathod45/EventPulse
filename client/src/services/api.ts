@@ -39,7 +39,7 @@ export const api = {
     }
   },
 
-  // Users (for demo switcher)
+  // Users (for demo switcher & reminder settings)
   async getUsers(): Promise<User[]> {
     try {
       const res = await fetch(`${API_BASE_URL}/users`);
@@ -49,6 +49,20 @@ export const api = {
     } catch {
       return [];
     }
+  },
+
+  async updateUserReminders(userId: string, settings: { emailNotify: boolean; reminderHoursBefore: number }): Promise<User> {
+    const res = await fetch(`${API_BASE_URL}/users/${encodeURIComponent(userId)}/reminders`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || 'Failed to update reminder settings');
+    }
+    const json = await res.json();
+    return json.data;
   },
 
   // RSVPs

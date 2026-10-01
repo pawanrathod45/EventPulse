@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RSVP } from '../types/index.ts';
-import { BookmarkCheck, Calendar, Clock, MapPin, Trash2, Share2, Check, ArrowRight, Loader2, Users } from 'lucide-react';
+import { BookmarkCheck, Calendar, Clock, MapPin, Trash2, Share2, Check, ArrowRight, Loader2, Users, Bell, BellRing } from 'lucide-react';
 import { useUser } from '../context/UserContext.tsx';
+import { api } from '../services/api.ts';
 
 interface DashboardPageProps {
   rsvps: RSVP[];
@@ -18,10 +19,41 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onShare,
   onExploreEvents,
 }) => {
-  const { currentUser } = useUser();
+  const { currentUser, setCurrentUser } = useUser();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
+
+  // Reminder settings state
+  const [emailNotify, setEmailNotify] = useState<boolean>(true);
+  const [hoursBefore, setHoursBefore] = useState<number>(24);
+  const [isSavingReminders, setIsSavingReminders] = useState(false);
+  const [remindersSaved, setRemindersSaved] = useState(false);
+
+  useEffect(() => {
+    if (currentUser?.reminderSettings) {
+      setEmailNotify(currentUser.reminderSettings.emailNotify);
+      setHoursBefore(currentUser.reminderSettings.reminderHoursBefore || 24);
+    }
+  }, [currentUser]);
+
+  const handleSaveReminders = async () => {
+    if (!currentUser?._id) return;
+    try {
+      setIsSavingReminders(true);
+      const updated = await api.updateUserReminders(currentUser._id, {
+        emailNotify,
+        reminderHoursBefore: Number(hoursBefore),
+      });
+      setCurrentUser(updated);
+      setRemindersSaved(true);
+      setTimeout(() => setRemindersSaved(false), 3000);
+    } catch (err: any) {
+      alert(err?.message || 'Failed to update reminders');
+    } finally {
+      setIsSavingReminders(false);
+    }
+  };
 
   const handleCancel = async (id: string) => {
     if (!window.confirm('Are you sure you want to cancel this RSVP?')) return;
@@ -74,6 +106,70 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           >
             <span>Discover More</span>
             <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Event Reminder Settings Panel (MongoDB Persistence: User.reminderSettings) */}
+      <div className="glass-panel rounded-2xl p-5 border border-white/10 bg-surface-card/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+            <BellRing className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <span>Event Reminder Settings</span>
+              {remindersSaved && (
+                <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  Settings Saved
+                </span>
+              )}
+            </h3>
+            <p className="text-xs text-slate-400">
+              Configure notifications for your confirmed events (stored in MongoDB User Profile)
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={emailNotify}
+              onChange={(e) => setEmailNotify(e.target.checked)}
+              className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-white/20 bg-slate-800"
+            />
+            <span>Email Reminders</span>
+          </label>
+
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span>Notify me:</span>
+            <select
+              aria-label="Reminder notification lead time"
+              value={hoursBefore}
+              onChange={(e) => setHoursBefore(Number(e.target.value))}
+              className="bg-slate-900 border border-white/15 rounded-lg text-white text-xs px-2.5 py-1 focus:ring-1 focus:ring-brand-500"
+            >
+              <option value={6}>6 hours before</option>
+              <option value={12}>12 hours before</option>
+              <option value={24}>24 hours before</option>
+              <option value={48}>48 hours before</option>
+            </select>
+          </div>
+
+          <button
+            onClick={handleSaveReminders}
+            disabled={isSavingReminders}
+            className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition-colors disabled:opacity-50 flex items-center gap-1.5"
+          >
+            {isSavingReminders ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <span>Save Preferences</span>
+            )}
           </button>
         </div>
       </div>

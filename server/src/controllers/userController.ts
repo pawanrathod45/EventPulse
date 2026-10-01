@@ -29,3 +29,33 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     next(error);
   }
 };
+
+export const updateReminders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { emailNotify, reminderHoursBefore } = req.body;
+
+    const user = await UserModel.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          'reminderSettings.emailNotify': Boolean(emailNotify),
+          'reminderSettings.reminderHoursBefore': Number(reminderHoursBefore) || 24,
+        },
+      },
+      { new: true }
+    ).lean();
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    res.json({
+      success: true,
+      message: 'Reminder settings updated successfully',
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
