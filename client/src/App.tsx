@@ -5,6 +5,7 @@ import { EventItem } from './types/index.ts';
 import { UserProvider, useUser } from './context/UserContext.tsx';
 import { Navbar } from './components/Navbar.tsx';
 import { DiscoverPage } from './pages/DiscoverPage.tsx';
+import { DashboardPage } from './pages/DashboardPage.tsx';
 import { CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
 interface Toast {
@@ -63,7 +64,10 @@ function MainApp() {
   });
 
   // Query user RSVPs
-  const { data: userRsvps = [] } = useQuery({
+  const {
+    data: userRsvps = [],
+    isLoading: isRsvpsLoading,
+  } = useQuery({
     queryKey: ['user-rsvps', currentUser?._id],
     queryFn: () => (currentUser?._id ? api.getUserRSVPs(currentUser._id) : Promise.resolve([])),
     enabled: Boolean(currentUser?._id),
@@ -93,6 +97,19 @@ function MainApp() {
     },
   });
 
+  // Cancel RSVP Mutation
+  const cancelRsvpMutation = useMutation({
+    mutationFn: (rsvpId: string) => api.cancelRSVP(rsvpId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-rsvps'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      addToast('info', 'RSVP cancelled.');
+    },
+    onError: (err: any) => {
+      addToast('error', err?.message || 'Failed to cancel RSVP');
+    },
+  });
+
   // Handle Share link generation
   const handleShare = async (rsvpId: string, eventId: string): Promise<string | null> => {
     if (!currentUser?._id) {
@@ -102,10 +119,8 @@ function MainApp() {
     try {
       const res = await api.generateShareLink({ rsvpId, userId: currentUser._id });
       if (res?.shareUrl) {
-        // Copy to clipboard
         await navigator.clipboard.writeText(res.shareUrl);
         addToast('success', 'Invite link copied to clipboard! Share it with friends to test the Vibe Check.');
-        // Invalidate friends count to refresh cards
         queryClient.invalidateQueries({ queryKey: ['events'] });
         return res.shareUrl;
       }
@@ -159,7 +174,15 @@ function MainApp() {
             rsvpSubmittingId={rsvpSubmittingId}
           />
         ) : (
-          <div className="p-8 text-center text-slate-400">RSVP Dashboard view</div>
+          <DashboardPage
+            rsvps={userRsvps}
+            isLoading={isRsvpsLoading}
+            onCancelRsvp={async (id) => {
+              await cancelRsvpMutation.mutateAsync(id);
+            }}
+            onShare={handleShare}
+            onExploreEvents={() => setCurrentTab('discover')}
+          />
         )}
       </main>
 

@@ -4,6 +4,7 @@ import { config } from './config/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import userRoutes from './routes/userRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
+import rsvpRoutes from './routes/rsvpRoutes.js';
 
 export const createApp = (): Express => {
   const app = express();
@@ -25,6 +26,7 @@ export const createApp = (): Express => {
   // Base API routes
   app.use('/api/users', userRoutes);
   app.use('/api/events', eventRoutes);
+  app.use('/api/rsvp', rsvpRoutes);
 
   // Central error handling
   app.use(errorHandler);
